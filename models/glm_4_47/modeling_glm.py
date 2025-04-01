@@ -84,13 +84,13 @@ class GlmRotaryEmbedding(nn.Module):
         self.base = base
 
         inv_freq = 1.0 / (self.base ** (torch.arange(0, self.dim, 2, dtype=torch.int64).float() / self.dim))
-        self.register_buffer("inv_freq", tensor=inv_freq, persistent=False)
+        self.register_buffer("inv_freq", tensor=inv_freq, persistent=False) # [dim]
 
     @torch.no_grad()
     def forward(self, x, position_ids, seq_len=None):
         # x: [bs, num_attention_heads, seq_len, head_size]
         self.inv_freq.to(x.device)
-        inv_freq_expanded = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1)
+        inv_freq_expanded = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1) # 扩展为[bs, dim, 1]
         position_ids_expanded = position_ids[:, None, :].float()
         # Force float32 since bfloat16 loses precision on long contexts
         # See https://github.com/huggingface/transformers/pull/29285
@@ -969,6 +969,15 @@ class GlmModel(GlmPreTrainedModel):
 
         return causal_mask
 
+class linear_warp(nn.Module):
+    def __init__(self, hidden_size, output_size, bias=False):
+        super().__init__()
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.primitive = nn.Linear(hidden_size, output_size, bias=bias)
+    def forward(self, x):
+        return self.primitive(x)
+
 
 class GlmForCausalLM(GlmPreTrainedModel, GenerationMixin):
     _tied_weights_keys = ["lm_head.weight"]
@@ -1203,7 +1212,7 @@ class GlmForSequenceClassification(GlmPreTrainedModel):
 )
 class GlmForTokenClassification(GlmPreTrainedModel):
     def __init__(self, config: GlmConfig):
-        super().__init__(config)
+        fsuper().__init__(config)
         self.num_labels = config.num_labels
         self.model = GlmModel(config)
         if getattr(config, "classifier_dropout", None) is not None:
