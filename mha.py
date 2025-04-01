@@ -27,8 +27,8 @@ head_dim = 32
 model = MultiHeadAttention(input_dim, num_heads, head_dim)
 
 # 创建一个示例的隐藏状态张量
-batch_size = 32
-seq_length = 10
+batch_size = 1
+seq_length = 64
 hidden_states = torch.randn(batch_size, seq_length, input_dim)
 
 # 处理隐藏状态
@@ -36,3 +36,9 @@ query, key, value = model(hidden_states)
 print(f"Query shape: {query.shape}")
 print(f"Key shape: {key.shape}")
 print(f"Value shape: {value.shape}")
+
+idx = torch.arange(0, 3 * 4 * 5).view(3, 4, 5)
+transpose_idx = idx.transpose(1, 2)
+print(idx)
+print(transpose_idx)
+print(torch.matmul(idx, transpose_idx))
