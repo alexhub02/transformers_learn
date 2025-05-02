@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import os
 
+
 data_root = os.path.join(os.getcwd(), "data")
 a = torch.arange(1, 25).reshape(2, 3, 4)
 a.numpy().tofile(os.path.join(data_root, "a.bin"))
